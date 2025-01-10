@@ -15,12 +15,14 @@ import controller.BookAuthorController;
 import controller.BookController;
 import controller.CategoryController;
 import controller.EditorController;
+import controller.MemberController;
 import db.DatabaseManager;
 import model.AuthorDAO;
 import model.BookAuthorDAO;
 import model.BookDAO;
 import model.CategoryDAO;
 import model.EditorDAO;
+import model.MemberDAO;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
@@ -61,8 +63,10 @@ public class MainFrame extends JFrame {
                     AuthorController authorController = new AuthorController(authorDAO);
                     BookAuthorDAO bookAuthorDAO = new BookAuthorDAO();
                     BookAuthorController bookAuthorController = new BookAuthorController(bookAuthorDAO);
+                    MemberDAO memberDAO = new MemberDAO();
+                    MemberController memberController = new MemberController(memberDAO);
                     
-					MainFrame frame = new MainFrame(bookController, categoryController, editorController, authorController, bookAuthorController);
+					MainFrame frame = new MainFrame(bookController, categoryController, editorController, authorController, bookAuthorController, memberController);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -74,7 +78,7 @@ public class MainFrame extends JFrame {
 
 	/*Create the frame.*/
 	public MainFrame(BookController bookController, CategoryController categoryController, EditorController editorController, AuthorController authorController,
-			BookAuthorController bookAuthorController) {
+			BookAuthorController bookAuthorController, MemberController memberController) {
 		setTitle("Gestion de Bibliothèque - TP1 - POO2 (Raphael Santarosa da Cunha)");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 800, 500);
@@ -116,7 +120,7 @@ public class MainFrame extends JFrame {
 		gestionDesMembresMenuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
-                MembresView membresView = new MembresView();
+                MembresView membresView = new MembresView(memberController);
 
                 setContentPane(membresView);
                 revalidate();

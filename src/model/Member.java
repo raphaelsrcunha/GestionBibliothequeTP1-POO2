@@ -25,8 +25,7 @@ public class Member {
         this.dateInscription = dateInscription;
     }
 
-    public Member() {
-    }
+    public Member() {}
 
     public int getIdMembre() {
         return idMembre;
