@@ -17,4 +17,20 @@ public class EditorController {
 		return editorDAO.getAllEditors();
 	}
 	
+	public void addEditor(Editor editor) {
+		editorDAO.addEditor(editor);
+	}
+	
+	public void deleteEditor(int id) {
+		editorDAO.deleteEditor(id);
+	}
+	
+	public void updateEditor(Editor editor) {
+		editorDAO.updateEditor(editor);
+	}
+	
+	public List<Editor> searchByName(String name) {
+		return editorDAO.searchByName(name);
+	}
+	
 }

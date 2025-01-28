@@ -4,6 +4,7 @@ import java.util.List;
 
 import model.Book;
 import model.BookDAO;
+import model.BookDTO;
 
 public class BookController {
 
@@ -25,7 +26,32 @@ public class BookController {
     	bookDAO.deleteBook(id);
     }
     
-    public void updateBook(int id) {
-    	
+    public void updateBook(Book book) {
+    	bookDAO.updateBook(book);
     }
+    
+    public boolean isBookAvailable(int bookId) {
+        return bookDAO.isBookAvailable(bookId);
+    }
+    
+    public Book getBook(int id) {
+    	return bookDAO.getBook(id);
+    }
+    
+    public List<Book> searchByTitle(String title) {
+    	return bookDAO.searchByTitle(title);
+    }
+
+    public Book getBookByTitle(String title) {
+        return bookDAO.getBookByTitle(title);
+    }
+    
+    public List<BookDTO> getAllBooksWithDetails() {
+    	return bookDAO.getAllBooksWithDetails();
+    }
+    
+    public BookDTO getBookDetails(int bookId) {
+        return bookDAO.getBookDetailsById(bookId);
+    }
+    
 }

@@ -17,4 +17,15 @@ public class AuthorController {
 		return authorDAO.getAllAuthors();
 	}
 	
+	public int addAuthor(Author author) {
+		return authorDAO.addAuthor(author);
+	}
+	
+	public void deleteAuthor(int id) {
+		authorDAO.deleteAuthor(id);
+	}
+	
+	public void updateAuthor(Author author) {
+		authorDAO.updateAuthor(author);
+	}
 }

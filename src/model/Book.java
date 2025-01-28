@@ -1,6 +1,9 @@
 package model;
 
-public class Book implements CategoryComponent {
+import java.util.ArrayList;
+import java.util.List;
+
+public class Book implements CategoryComponent, Subject {
 
 	 private int ID_Livre; 
 	 private String Titre;
@@ -8,6 +11,10 @@ public class Book implements CategoryComponent {
 	 private String ISBN;
 	 private int ID_Editeur;
 	 private int ID_Categorie;
+	 
+	 
+	 //Pattern Observer
+	 private List<Observer> observers = new ArrayList<>();
 
     public Book(int ID_Livre, String Titre, int Annee_Publication, String ISBN, int ID_Editeur, int ID_Categorie) {
         this.ID_Livre = ID_Livre;
@@ -91,13 +98,28 @@ public class Book implements CategoryComponent {
 
     @Override
     public String toString() {
-        return "Livre{" +
-                "ID_Livre=" + ID_Livre +
-                ", Titre='" + Titre + '\'' +
-                ", Annee_Publication=" + Annee_Publication +
-                ", ISBN='" + ISBN + '\'' +
-                ", ID_Editeur=" + ID_Editeur +
-                ", ID_Categorie=" + ID_Categorie +
-                '}';
+        return Titre + " (" + Annee_Publication + ")";
     }
+
+    @Override
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers() {
+        for (Observer observer : observers) {
+            observer.update(this);
+        }
+    }
+    
+    public void markAsAvailable() {
+        notifyObservers();
+    }
+    
 }

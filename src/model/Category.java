@@ -8,19 +8,16 @@ public class Category implements CategoryComponent {
 	private int id;
 	private String name;
 	private List<CategoryComponent> children;
+	private int parentId;
 	
-	public Category(int id, String name) {
-        this.setId(id);
-		this.name = name;
+	public Category(int id, String name, int parentId) {
+        this.id = id;
+        this.name = name;
+        this.parentId = parentId;
         this.children = new ArrayList<>();
     }
 	
-	public Category(String name) {
-		this.name = name;
-        this.children = new ArrayList<>();
-    }
-
-    @Override
+	@Override
     public void add(CategoryComponent component) {
         children.add(component);
     }
@@ -59,6 +56,12 @@ public class Category implements CategoryComponent {
 		return name;
 	}
 	
-	
+	public int getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
+    }
 
 }

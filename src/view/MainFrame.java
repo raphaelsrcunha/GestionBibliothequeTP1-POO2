@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -15,14 +16,16 @@ import controller.BookAuthorController;
 import controller.BookController;
 import controller.CategoryController;
 import controller.EditorController;
+import controller.EmpruntController;
 import controller.MemberController;
+import controller.ReservationController;
 import db.DatabaseManager;
 import model.AuthorDAO;
 import model.BookAuthorDAO;
 import model.BookDAO;
 import model.CategoryDAO;
+import model.CommandManager;
 import model.EditorDAO;
-import model.MemberDAO;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
@@ -51,8 +54,6 @@ public class MainFrame extends JFrame {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					// Crée les instances et injecte les dépendances
-					// Dependency Injection and Inversion of Control
                     BookDAO bookDAO = new BookDAO();
                     CategoryDAO categoryDAO = new CategoryDAO();
                     EditorDAO editorDAO = new EditorDAO();
@@ -63,10 +64,13 @@ public class MainFrame extends JFrame {
                     AuthorController authorController = new AuthorController(authorDAO);
                     BookAuthorDAO bookAuthorDAO = new BookAuthorDAO();
                     BookAuthorController bookAuthorController = new BookAuthorController(bookAuthorDAO);
-                    MemberDAO memberDAO = new MemberDAO();
-                    MemberController memberController = new MemberController(memberDAO);
+                    MemberController memberController = new MemberController();
+                    EmpruntController empruntController = new EmpruntController();
+                    ReservationController reservationController = new ReservationController();
+                    CommandManager commandManager = new CommandManager();
                     
-					MainFrame frame = new MainFrame(bookController, categoryController, editorController, authorController, bookAuthorController, memberController);
+					MainFrame frame = new MainFrame(bookController, categoryController, editorController, authorController, bookAuthorController, memberController, empruntController,
+							commandManager, reservationController);
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -78,7 +82,8 @@ public class MainFrame extends JFrame {
 
 	/*Create the frame.*/
 	public MainFrame(BookController bookController, CategoryController categoryController, EditorController editorController, AuthorController authorController,
-			BookAuthorController bookAuthorController, MemberController memberController) {
+			BookAuthorController bookAuthorController, MemberController memberController, EmpruntController empruntController, CommandManager commandManager, 
+			ReservationController reservationController) {
 		setTitle("Gestion de Bibliothèque - TP1 - POO2 (Raphael Santarosa da Cunha)");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 800, 500);
@@ -98,6 +103,11 @@ public class MainFrame extends JFrame {
 		mnNewMenu_1.add(ecranPrincipalMenuItem);
 		
 		JMenuItem fermerMenuItem = new JMenuItem("Fermer");
+		fermerMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
 		mnNewMenu_1.add(fermerMenuItem);
 		
 		JMenu mnNewMenu = new JMenu("Modules");
@@ -130,16 +140,33 @@ public class MainFrame extends JFrame {
 		mnNewMenu.add(gestionDesMembresMenuItem);
 		
 		JMenuItem gestionDesEmpruntsMenuItem = new JMenuItem("Gestion des Emprunts");
-		gestionDesEmpruntsMenuItem.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				
-				EmpruntsView empruntsView = new EmpruntsView();
-				
-				setContentPane(empruntsView);
-				revalidate();
-				repaint();
-			}
+		gestionDesEmpruntsMenuItem.addActionListener(e -> {
+		    EmpruntsView empruntsView = new EmpruntsView(
+		        empruntController, 
+		        memberController, 
+		        bookController, 
+		        commandManager,
+		        reservationController 
+		    );
+		    setContentPane(empruntsView);
+		    revalidate();
+		    repaint();
 		});
+		
+		JMenuItem gestionDesReservationMenuItem = new JMenuItem("Gestion de Réservation");
+		gestionDesReservationMenuItem.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		        ReservationView reservationView = new ReservationView(
+		            reservationController, // ✅ Corrigido!
+		            bookController, 
+		            memberController
+		        );
+		        setContentPane(reservationView);
+		        revalidate();
+		        repaint();
+		    }
+		});
+		mnNewMenu.add(gestionDesReservationMenuItem);
 		mnNewMenu.add(gestionDesEmpruntsMenuItem);
 		
 		JMenuItem gestionDesAuteursMenuItem = new JMenuItem("Gestion des Auteurs");
@@ -153,6 +180,15 @@ public class MainFrame extends JFrame {
 			}
 		});
 		mnNewMenu.add(gestionDesAuteursMenuItem);
+		
+		JMenuItem gestionCategoriesMenuItem = new JMenuItem("Gestion des Catégories");
+		gestionCategoriesMenuItem.addActionListener(e -> {
+		    CategoryView categoryView = new CategoryView(categoryController);
+		    setContentPane(categoryView);
+		    revalidate();
+		    repaint();
+		});
+		mnNewMenu.add(gestionCategoriesMenuItem);
 		
 		JMenuItem gestionDesEditeursMenuItem = new JMenuItem("Gestion des Editeurs");
 		gestionDesEditeursMenuItem.addActionListener(new ActionListener() {
@@ -170,6 +206,35 @@ public class MainFrame extends JFrame {
 		menuBar.add(mnNewMenu_2);
 		
 		JMenuItem mntmNewMenuItem = new JMenuItem("À Propos de nous");
+		mntmNewMenuItem.addActionListener(new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		        JFrame aboutFrame = new JFrame("À Propos de Nous");
+		        aboutFrame.setSize(400, 200);
+		        aboutFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		        aboutFrame.setLocationRelativeTo(null); 
+		        
+		        JPanel panel = new JPanel();
+		        panel.setLayout(null); 
+		     
+		        JLabel label = new JLabel("Développé par Raphaël et Ismail pour le TP de POO 2");
+		        label.setHorizontalAlignment(SwingConstants.CENTER);
+		        label.setBounds(20, 30, 360, 30);
+		        panel.add(label);
+		        
+		        JButton okButton = new JButton("OK");
+		        okButton.setBounds(150, 100, 100, 30);
+		        okButton.addActionListener(new ActionListener() {
+		            public void actionPerformed(ActionEvent e) {
+		                aboutFrame.dispose(); 
+		            }
+		        });
+		        panel.add(okButton);
+		        
+		        aboutFrame.getContentPane().add(panel); 
+		        aboutFrame.setVisible(true); 
+		    }
+		});
+
 		mnNewMenu_2.add(mntmNewMenuItem);
 		
 		homeContentPane = new JPanel();
@@ -187,10 +252,10 @@ public class MainFrame extends JFrame {
 		JLabel titreTP = new JLabel("Travail Pratique 1 - POO2");
 		titreTP.setHorizontalAlignment(SwingConstants.CENTER);
 		titreTP.setFont(new Font("Tahoma", Font.BOLD, 16));
-		titreTP.setBounds(215, 179, 355, 25);
+		titreTP.setBounds(215, 50, 355, 25);
 		homeContentPane.add(titreTP);
 		
-		JLabel subtitre = new JLabel("Elève: Raphael Santarosa da Cunha");
+		JLabel subtitre = new JLabel("Elèves: Raphael Santarosa da Cunha et Ismail Chemache");
 		subtitre.setHorizontalAlignment(SwingConstants.CENTER);
 		subtitre.setFont(new Font("Tahoma", Font.PLAIN, 10));
 		subtitre.setBounds(215, 403, 355, 25);
@@ -204,7 +269,7 @@ public class MainFrame extends JFrame {
 		    } else {
 		        ImageIcon logoIcon = new ImageIcon(imageURL);
 		        JLabel logoLabel = new JLabel(logoIcon);
-		        logoLabel.setBounds(300, 50, 200, 100); 
+		        logoLabel.setBounds(150, 100, 500, 250); 
 		        homeContentPane.add(logoLabel);
 		    }
 		} catch (Exception e) {

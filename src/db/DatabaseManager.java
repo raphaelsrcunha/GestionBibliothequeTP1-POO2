@@ -49,19 +49,6 @@ public class DatabaseManager implements IDataAccess {
         }
     }
     
-    @Override
-    public void executeQuery(String query) throws Exception {
-        if (connection == null || connection.isClosed()) {
-            connect();
-        }
-        
-        try (PreparedStatement statement = connection.prepareStatement(query);
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                System.out.println("Résultat: " + resultSet.getString(1));
-            }
-        }
-    }
     
     public Connection getConnection() throws SQLException {
         try {
@@ -72,9 +59,5 @@ public class DatabaseManager implements IDataAccess {
         } catch (Exception e) {
             throw new SQLException("Error: ", e);
         }
-    }
-    
-    protected Object readResolve() {
-        return getInstance();
     }
 }

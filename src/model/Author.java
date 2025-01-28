@@ -1,7 +1,6 @@
 package model;
 
-import java.sql.Date;
-import java.time.LocalDate;
+import java.util.Date;
 
 public class Author {
 
@@ -10,7 +9,11 @@ public class Author {
 	private String prenom;
 	private Date dateNaissance;
 	
-	
+	public Author(String nom, String prenom, Date dateNaissance) {
+		this.nom = nom;
+		this.prenom = prenom;
+		this.dateNaissance = dateNaissance;
+	}
 	
 	public Author(int id, String nom, String prenom, Date dateNaissance) {
 		this.id = id;

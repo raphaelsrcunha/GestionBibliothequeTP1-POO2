@@ -1,25 +1,27 @@
 package model;
 
+import controller.EmpruntController;
+
 public class ReturnCommand implements Command {
 	
-	private Book book;
-    private Member membre;
+	private EmpruntController empruntController;
+    private int empruntId;
 
-    public ReturnCommand(Book book, Member member) {
-        this.book = book;
-        this.membre = membre;
+    public ReturnCommand(EmpruntController empruntController, int empruntId) {
+        this.empruntController = empruntController;
+        this.empruntId = empruntId;
     }
 
-	@Override
-	public void execute() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void execute() {
+        empruntController.markAsReturned(empruntId);
+        System.out.println("Retour effectué pour l'emprunt ID: " + empruntId);
+    }
 
-	@Override
-	public void undo() {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void undo() {
+        empruntController.markAsNotReturned(empruntId);
+        System.out.println("Retour annulé pour l'emprunt ID: " + empruntId);
+    }
 
 }

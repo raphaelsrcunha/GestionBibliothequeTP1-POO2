@@ -2,7 +2,9 @@ package model;
 
 import java.util.Date;
 
-public class Member {
+import javax.swing.JOptionPane;
+
+public class Member implements Observer {
 
     private int idMembre;
     private String nom;
@@ -69,12 +71,24 @@ public class Member {
 
     @Override
     public String toString() {
-        return "Member{" +
-               "idMembre=" + idMembre +
-               ", nom='" + nom + '\'' +
-               ", prenom='" + prenom + '\'' +
-               ", email='" + email + '\'' +
-               ", dateInscription=" + dateInscription +
-               '}';
+        return prenom + " " + nom;
     }
+
+    @Override
+    public void update(Book book) {
+        String message = String.format(
+            "<html><body style='width: 300px; text-align: center'>" +
+            "Le livre <strong>%s</strong> est maintenant disponible!" +
+            "</body></html>", 
+            book.getTitre()
+        );
+
+        JOptionPane.showMessageDialog(
+            null,
+            message,
+            "Livre Disponible",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
 }

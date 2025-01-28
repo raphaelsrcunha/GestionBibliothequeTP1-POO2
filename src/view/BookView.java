@@ -18,7 +18,9 @@ import controller.EditorController;
 import model.Author;
 import model.Book;
 import model.BookAuthor;
+import model.BookDTO;
 import model.Category;
+import model.CategoryComponent;
 import model.Editor;
 
 import javax.swing.JTable;
@@ -28,6 +30,14 @@ import javax.swing.JComboBox;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class BookView extends JPanel {
 
@@ -35,11 +45,15 @@ public class BookView extends JPanel {
     private DefaultTableModel tableModel;
     private JTable table;
     private JTextField titreTextField;
-    private JTextField anneeDePublicationtextField;
+    private JTextField anneeDePublicationTextField;
     private JTextField isbnTextField;
     private JComboBox categoriesComboBox;
     private JComboBox nomEditeurComboBox;
     private JComboBox auteursComboBox;
+    
+    //Tree
+    private JTree categoryTree;
+    private DefaultMutableTreeNode rootCategoryNode;
     
     //Injections
     private BookController bookController;
@@ -47,6 +61,7 @@ public class BookView extends JPanel {
     private EditorController editorController;
     private AuthorController authorController;
     private BookAuthorController bookAuthorController;
+    private JTextField rechercherParTitreTextField;
     
     // dependency injection
     public BookView(BookController bookController, CategoryController categoryController, EditorController editorController, AuthorController authorController,
@@ -61,6 +76,13 @@ public class BookView extends JPanel {
 
     private void initializeUI() {
         setLayout(null);
+        
+        //Tree
+        rootCategoryNode = new DefaultMutableTreeNode("Categories");
+        categoryTree = new JTree(rootCategoryNode);
+        JScrollPane treeScrollPane = new JScrollPane(categoryTree);
+        treeScrollPane.setBounds(35, 60, 170, 180);  
+        add(treeScrollPane);
 
         JLabel lblNewLabel = new JLabel("Gestion des Livres");
         lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -69,62 +91,114 @@ public class BookView extends JPanel {
         add(lblNewLabel);
 
         JScrollPane scrollPane = new JScrollPane();
-        scrollPane.setBounds(35, 264, 730, 142);
+        scrollPane.setBounds(35, 251, 730, 161);
         add(scrollPane);
 
         // Créer le modèle de la table
         tableModel = new DefaultTableModel();
         tableModel.addColumn("ID");
         tableModel.addColumn("Titre");
-        tableModel.addColumn("Annee Publication");
+        tableModel.addColumn("Auteurs");
+        tableModel.addColumn("Année Publication");
         tableModel.addColumn("ISBN");
-        tableModel.addColumn("ID Editeur");
-        tableModel.addColumn("ID Categorie");
+        tableModel.addColumn("Editeur");
+        tableModel.addColumn("Catégorie");
 
         table = new JTable(tableModel);
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int selectedRow = table.getSelectedRow();
+                if(selectedRow != -1 && selectedRow < currentBooks.size()) {
+                    BookDTO dto = currentBooks.get(selectedRow);
+                    Book book = dto.getBook();
+                    
+                    titreTextField.setText(book.getTitre());
+                    anneeDePublicationTextField.setText(String.valueOf(book.getAnnee_Publication()));
+                    isbnTextField.setText(book.getISBN());
+
+                    // Selecionar editor correto no combobox
+                    for(int i = 0; i < nomEditeurComboBox.getItemCount(); i++) {
+                        Object item = nomEditeurComboBox.getItemAt(i);
+                        if(item instanceof Editor) {
+                            Editor editor = (Editor) item;
+                            if(editor.getId() == book.getID_Editeur()) {
+                                nomEditeurComboBox.setSelectedIndex(i);
+                                break;
+                            }
+                        }
+                    }
+
+                    // Selecionar categoria correta no combobox
+                    for(int i = 0; i < categoriesComboBox.getItemCount(); i++) {
+                        Object item = categoriesComboBox.getItemAt(i);
+                        if(item instanceof Category) {
+                            Category category = (Category) item;
+                            if(category.getId() == book.getID_Categorie()) {
+                                categoriesComboBox.setSelectedIndex(i);
+                                break;
+                            }
+                        }
+                    }
+                    
+                    //TODO
+                 // Selection le author dans le combobox
+                    for(int i = 0; i < auteursComboBox.getItemCount(); i++) {
+                        Object item = auteursComboBox.getItemAt(i);
+                        if(item instanceof Author) {
+                            Author author = (Author) item;
+                            if(author.getId() == book.getID_Categorie()) {
+                                categoriesComboBox.setSelectedIndex(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
         scrollPane.setViewportView(table);
         
         titreTextField = new JTextField();
-        titreTextField.setBounds(35, 82, 318, 20);
+        titreTextField.setBounds(235, 82, 157, 20);
         add(titreTextField);
         titreTextField.setColumns(10);
         
         JLabel titreLabel = new JLabel("Titre");
-        titreLabel.setBounds(35, 66, 52, 14);
+        titreLabel.setBounds(235, 57, 52, 14);
         add(titreLabel);
         
         JLabel lblAnneDePublication = new JLabel("Année de Publication");
-        lblAnneDePublication.setBounds(396, 66, 131, 14);
+        lblAnneDePublication.setBounds(402, 66, 117, 14);
         add(lblAnneDePublication);
         
-        anneeDePublicationtextField = new JTextField();
-        anneeDePublicationtextField.setColumns(10);
-        anneeDePublicationtextField.setBounds(396, 82, 131, 20);
-        add(anneeDePublicationtextField);
+        anneeDePublicationTextField = new JTextField();
+        anneeDePublicationTextField.setColumns(10);
+        anneeDePublicationTextField.setBounds(402, 82, 117, 20);
+        add(anneeDePublicationTextField);
         
         JLabel lblIsbn = new JLabel("ISBN");
-        lblIsbn.setBounds(35, 116, 117, 14);
+        lblIsbn.setBounds(529, 66, 85, 14);
         add(lblIsbn);
         
         isbnTextField = new JTextField();
         isbnTextField.setColumns(10);
-        isbnTextField.setBounds(35, 132, 149, 20);
+        isbnTextField.setBounds(529, 82, 117, 20);
         add(isbnTextField);
         
         nomEditeurComboBox = new JComboBox();
-        nomEditeurComboBox.setBounds(194, 130, 117, 22);
+        nomEditeurComboBox.setBounds(235, 128, 124, 22);
         add(nomEditeurComboBox);
         
         JLabel lblEditeur = new JLabel("Editeur");
-        lblEditeur.setBounds(194, 115, 109, 14);
+        lblEditeur.setBounds(234, 113, 117, 14);
         add(lblEditeur);
         
         JLabel lblCatgorie = new JLabel("Catégorie");
-        lblCatgorie.setBounds(321, 115, 109, 14);
+        lblCatgorie.setBounds(369, 113, 109, 14);
         add(lblCatgorie);
         
         categoriesComboBox = new JComboBox();
-        categoriesComboBox.setBounds(321, 130, 131, 22);
+        categoriesComboBox.setBounds(369, 128, 131, 22);
         add(categoriesComboBox);
         
         JButton ajouterLivreButton = new JButton("Ajouter");
@@ -147,12 +221,114 @@ public class BookView extends JPanel {
         add(btnSupprimer);
         
         JLabel lblAuteur = new JLabel("Auteur");
-        lblAuteur.setBounds(467, 115, 109, 14);
+        lblAuteur.setBounds(515, 113, 109, 14);
         add(lblAuteur);
         
         auteursComboBox = new JComboBox();
-        auteursComboBox.setBounds(467, 130, 131, 22);
+        auteursComboBox.setBounds(515, 128, 131, 22);
         add(auteursComboBox);
+        
+        JButton btnMettreAJour = new JButton("Mettre à jour");
+        btnMettreAJour.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int selectedRow = table.getSelectedRow();
+                
+                if(selectedRow == -1) {
+                    JOptionPane.showMessageDialog(BookView.this, 
+                        "Veuillez sélectionner un livre à modifier", 
+                        "Aucune sélection", 
+                        JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+
+                try {
+                    int bookId = (int) tableModel.getValueAt(selectedRow, 0);
+                    String titre = titreTextField.getText();
+                    int annee = Integer.parseInt(anneeDePublicationTextField.getText());
+                    String isbn = isbnTextField.getText();
+                    
+                    Editor selectedEditor = (Editor) nomEditeurComboBox.getSelectedItem();
+                    Category selectedCategory = (Category) categoriesComboBox.getSelectedItem();
+                    Author selectedAuthor = (Author) auteursComboBox.getSelectedItem();
+
+                    if(selectedEditor == null || selectedCategory == null || selectedAuthor == null) {
+                        JOptionPane.showMessageDialog(BookView.this, 
+                            "Veuillez sélectionner un éditeur et une catégorie valides", 
+                            "Données manquantes", 
+                            JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+
+                    Book updatedBook = new Book(
+                        bookId,
+                        titre,
+                        annee,
+                        isbn,
+                        selectedEditor.getId(),
+                        selectedCategory.getId()
+                    );
+                    
+                    BookAuthor updatedBookAuthor = new BookAuthor(
+                    		bookId,
+                    		selectedAuthor.getId()
+                    		);
+
+                    bookController.updateBook(updatedBook);
+                    //bookAuthorController.update(updatedBookAuthor);
+                    
+                    loadBooks();
+                    clearFields();
+                    
+                    JOptionPane.showMessageDialog(BookView.this, 
+                        "Livre mis à jour avec succès!", 
+                        "Mise à jour", 
+                        JOptionPane.INFORMATION_MESSAGE);
+
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(BookView.this, 
+                        "Année de publication invalide", 
+                        "Erreur de format", 
+                        JOptionPane.ERROR_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(BookView.this, 
+                        "Erreur lors de la mise à jour: " + ex.getMessage(), 
+                        "Erreur", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+        btnMettreAJour.setBounds(656, 146, 109, 23);
+        add(btnMettreAJour);
+        
+        rechercherParTitreTextField = new JTextField();
+        rechercherParTitreTextField.addKeyListener(new KeyAdapter() {
+        	@Override
+        	public void keyPressed(KeyEvent e) {
+        		rechercherParTitre();
+        	}
+        });
+        rechercherParTitreTextField.setBounds(235, 220, 240, 20);
+        add(rechercherParTitreTextField);
+        rechercherParTitreTextField.setColumns(10);
+        
+        JButton btnRechercherParTitre = new JButton("Rechercher par Titre");
+        btnRechercherParTitre.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		rechercherParTitre();
+        	}
+        });
+        btnRechercherParTitre.setBounds(485, 217, 161, 23);
+        add(btnRechercherParTitre);
+        
+        JButton btnRefresh = new JButton("Refresh");
+        btnRefresh.addActionListener(new ActionListener() {
+        	public void actionPerformed(ActionEvent e) {
+        		loadBooks();
+        		clearFields();
+        	}
+        });
+        btnRefresh.setBounds(656, 217, 109, 23);
+        add(btnRefresh);
 
         //AGORA PRECISO IMPLEMENTAR A LÓGICA DE ATUALIZAR A TABELA LIVRE_AUTEUR
         
@@ -162,9 +338,29 @@ public class BookView extends JPanel {
         loadBooks();
     }
     
+    private void rechercherParTitre() {
+        List<Book> booksSearched = bookController.searchByTitle(rechercherParTitreTextField.getText());
+        
+        tableModel.setRowCount(0);
+
+        for (Book book : booksSearched) {
+            BookDTO dto = bookController.getBookDetails(book.getID_Livre());
+            
+            tableModel.addRow(new Object[]{
+                book.getID_Livre(),
+                book.getTitre(),
+                dto.getAuteurs(),
+                book.getAnnee_Publication(),
+                book.getISBN(),
+                dto.getEditeurNom(),
+                dto.getCategorieNom()
+            });
+        }
+    }
+    
     private void addBook() {
     	String titre = titreTextField.getText();
-    	int anneePublication = Integer.parseInt(anneeDePublicationtextField.getText());
+    	int anneePublication = Integer.parseInt(anneeDePublicationTextField.getText());
         String isbn = isbnTextField.getText();
         Editor selectedEditor = (Editor) nomEditeurComboBox.getSelectedItem();
         Category selectedCategory = (Category) categoriesComboBox.getSelectedItem();
@@ -180,7 +376,7 @@ public class BookView extends JPanel {
         loadBooks();
 
         titreTextField.setText("");
-        anneeDePublicationtextField.setText("");
+        anneeDePublicationTextField.setText("");
         isbnTextField.setText("");
         nomEditeurComboBox.setSelectedIndex(0);
         categoriesComboBox.setSelectedIndex(0);
@@ -194,51 +390,75 @@ public class BookView extends JPanel {
 
     }
 
+    private List<BookDTO> currentBooks;
+
     private void loadBooks() {
-        List<Book> books = bookController.getAllBooks();
-
-        tableModel.setRowCount(0);
-
-        //Ajoute les livres dans la table
-        for (Book book : books) {
-            tableModel.addRow(new Object[]{
-                book.getID_Livre(),
-                book.getTitre(),
-                book.getAnnee_Publication(),
-                book.getISBN(),
-                book.getID_Editeur(),
-                book.getID_Categorie()
-            });
-        }
+    	currentBooks = bookController.getAllBooksWithDetails();
+	    tableModel.setRowCount(0);
+	    for (BookDTO dto : currentBooks) {
+	        tableModel.addRow(new Object[]{
+	            dto.getBook().getID_Livre(),
+	            dto.getBook().getTitre(),
+	            dto.getAuteurs(),
+	            dto.getBook().getAnnee_Publication(),
+	            dto.getBook().getISBN(),
+	            dto.getEditeurNom(),
+	            dto.getCategorieNom()
+	        });
+	    }
     }
     
     private void deleteBook() {
         int selectedRow = table.getSelectedRow();
-
+        
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Veuillez sélectionner un livre à supprimer.", "Aucune sélection", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, 
+                "Veuillez sélectionner un livre à supprimer.", 
+                "Aucune sélection", 
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        int idLivre = (int) tableModel.getValueAt(selectedRow, 0);
-
-        int confirm = JOptionPane.showConfirmDialog(this, "Êtes-vous sûr de vouloir supprimer ce livre?", "Confirmer la suppression", JOptionPane.YES_NO_OPTION);
+        
+        // Agora o ID está na coluna 0
+        int idLivre = (int) tableModel.getValueAt(selectedRow, 0); 
+        
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "Êtes-vous sûr de vouloir supprimer ce livre?", 
+            "Confirmer la suppression", 
+            JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
             bookController.deleteBook(idLivre);
-
             loadBooks();
-
-            System.out.println("Livre supprimé avec succès!");
+            JOptionPane.showMessageDialog(this, 
+                "Livre supprimé avec succès!", 
+                "Succès", 
+                JOptionPane.INFORMATION_MESSAGE);
         }
     }
     
     private void loadCategories() {
     	List<Category> categories = categoryController.getAllCategories();
     	categoriesComboBox.addItem(null);
+    	
+    	rootCategoryNode.removeAllChildren();
+    	
     	for(Category category : categories) {
+    		DefaultMutableTreeNode categoryNode = new DefaultMutableTreeNode(category);
+            rootCategoryNode.add(categoryNode);
+            addSubCategories(categoryNode, category.getChildren());
     		categoriesComboBox.addItem(category);
     	}
+    }
+    
+    private void addSubCategories(DefaultMutableTreeNode parentNode, List<CategoryComponent> subCategories) {
+        for (CategoryComponent component : subCategories) {
+            if (component instanceof Category) {
+                DefaultMutableTreeNode subCategoryNode = new DefaultMutableTreeNode(component);
+                parentNode.add(subCategoryNode);
+                addSubCategories(subCategoryNode, ((Category) component).getChildren());
+            }
+        }
     }
     
     private void loadEditors() {
@@ -254,7 +474,18 @@ public class BookView extends JPanel {
     	auteursComboBox.addItem("");
     	for(Author author : authors) {
     		auteursComboBox.addItem(author);
-    	}
-    			
+    	}	
     }
+    
+    private void clearFields() {
+    	titreTextField.setText("");
+    	anneeDePublicationTextField.setText("");
+    	isbnTextField.setText("");
+    	nomEditeurComboBox.setSelectedIndex(0);
+    	categoriesComboBox.setSelectedIndex(0);
+    	auteursComboBox.setSelectedIndex(0);
+    	rechercherParTitreTextField.setText("");
+    }
+    
+    
 }
